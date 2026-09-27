@@ -52,8 +52,17 @@ footer{text-align:center;color:#777;font-size:12px;padding:25px}
 </header>
 
 <div class="wrap">
-  <div class="section-title">🍔 Menú</div>
-  <div id="products" class="grid"></div>
+  <div class="section-title">🌭 Combos</div>
+  <div id="combos" class="grid"></div>
+
+  <div class="section-title">🥩 Carnes</div>
+  <div id="carnes" class="grid"></div>
+
+  <div class="section-title">🍟 Salchipapas</div>
+  <div id="salchipapas" class="grid"></div>
+
+  <div class="section-title">🥤 Bebidas</div>
+  <div id="bebidas" class="grid"></div>
 
   <div class="customer">
     <div class="section-title" style="margin-top:0">📍 Datos del pedido</div>
@@ -68,86 +77,91 @@ footer{text-align:center;color:#777;font-size:12px;padding:25px}
     </label>
   </div>
 
-  <div class="small" style="text-align:center;margin-top:12px">
-    📲 WhatsApp del negocio: <strong>310 429 8587</strong>
-  </div>
-
   <div class="order">
     <h2>🛒 Tu pedido</h2>
     <div id="summary">Todavía no has agregado productos.</div>
     <div class="total">Total: <span id="total">$0</span></div>
     <button class="whatsapp" onclick="sendWhatsApp()">💬 ENVIAR PEDIDO POR WHATSAPP</button>
-    <div class="small">El pedido se enviará directamente al WhatsApp de SalchiExpress.</div>
+    <div class="small">El pedido se enviará directamente a SalchiExpress.</div>
   </div>
 </div>
 <footer>Menú digital • Pedidos por WhatsApp</footer>
 
 <script>
+const PHONE="573104298587";
+
 const products=[
- ["Perro caliente + gaseosa",20000],
- ["Hamburguesa + gaseosa",25000],
- ["Carne asada",20000],
- ["Cerdo asado",25000],
- ["Salchipapas clásica",15000],
- ["Salchipapas brutal",20000],
- ["Salchipapas texana",25000],
- ["Salchipapas",30000],
- ["Mega salchipapas x4",40000],
- ["Salchipapas familiar",50000],
- ["Gaseosa 1.5 L Coca-Cola",8000],
- ["Postobón 1.5 L",6500]
+  {name:"Perro caliente + gaseosa",price:20000,category:"combos",icon:"🌭",tag:"TOP"},
+  {name:"Hamburguesa + gaseosa",price:25000,category:"combos",icon:"🍔",tag:"TOP"},
+  {name:"Carne asada",price:20000,category:"carnes",icon:"🥩"},
+  {name:"Cerdo asado",price:25000,category:"carnes",icon:"🍖"},
+  {name:"Salchipapas clásica",price:15000,category:"salchipapas",icon:"🍟"},
+  {name:"Salchipapas brutal",price:20000,category:"salchipapas",icon:"🔥"},
+  {name:"Salchipapas texana",price:25000,category:"salchipapas",icon:"🌮"},
+  {name:"Salchipapas",price:30000,category:"salchipapas",icon:"🍟"},
+  {name:"Mega salchipapas x4",price:40000,category:"salchipapas",icon:"🍟"},
+  {name:"Salchipapas familiar",price:50000,category:"salchipapas",icon:"🍟"},
+  {name:"Gaseosa 1.5 L Coca-Cola",price:8000,category:"bebidas",icon:"🥤"},
+  {name:"Postobón 1.5 L",price:6500,category:"bebidas",icon:"🥤"}
 ];
+
 const cart=Array(products.length).fill(0);
 const money=n=>n.toLocaleString("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0});
+
 function render(){
- const box=document.getElementById("products");
- box.innerHTML=products.map((p,i)=>`
-  <div class="product" onclick="change(${i},1)">
-    <div class="food-icon">${["🌭","🍔","🥩","🍖","🍟","🔥","🌮","🍟","🍟","🍟","🥤","🥤"][i]}</div>
-    ${i<2?'<span class="tag">TOP</span>':''}
-    <h3>${p[0]}</h3>
-    <div class="price">${money(p[1])}</div>
-    <div class="select-hint">TOCA PARA AGREGAR</div>
-    <div class="controls" onclick="event.stopPropagation()">
-      <button class="minus" onclick="change(${i},-1)">−</button>
-      <span class="qty">${cart[i]}</span>
-      <button class="plus" onclick="change(${i},1)">+</button>
-    </div>
-  </div>`).join("");
- update();
+  ["combos","carnes","salchipapas","bebidas"].forEach(category=>{
+    const box=document.getElementById(category);
+    box.innerHTML=products.map((p,i)=>{
+      if(p.category!==category)return "";
+      return `<div class="product">
+        ${p.tag?`<span class="tag">${p.tag}</span>`:""}
+        <div class="food-icon">${p.icon}</div>
+        <h3>${p.name}</h3>
+        <div class="price">${money(p.price)}</div>
+        <div class="controls">
+          <button class="minus" onclick="change(${i},-1)">−</button>
+          <span class="qty">${cart[i]}</span>
+          <button class="plus" onclick="change(${i},1)">+</button>
+        </div>
+      </div>`;
+    }).join("");
+  });
+  update();
 }
+
 function change(i,n){cart[i]=Math.max(0,cart[i]+n);render();}
+
 function update(){
- let lines=[],total=0;
- cart.forEach((q,i)=>{if(q){let sub=q*products[i][1];total+=sub;lines.push(`${q} x ${products[i][0]} — ${money(sub)}`)}});
- document.getElementById("summary").innerHTML=lines.length?lines.map(x=>`<div>• ${x}</div>`).join(""):"Todavía no has agregado productos.";
- document.getElementById("total").textContent=money(total);
+  let lines=[],total=0;
+  cart.forEach((q,i)=>{
+    if(q){
+      const subtotal=q*products[i].price;
+      total+=subtotal;
+      lines.push(`<div>• ${q} x ${products[i].name} — ${money(subtotal)}</div>`);
+    }
+  });
+  document.getElementById("summary").innerHTML=lines.length?lines.join(""):"Todavía no has agregado productos.";
+  document.getElementById("total").textContent=money(total);
 }
+
 function sendWhatsApp(){
-  const phone="573104298587";
+  let items=[],total=0;
+  cart.forEach((q,i)=>{
+    if(q){
+      const subtotal=q*products[i].price;
+      total+=subtotal;
+      items.push(`• ${q} x ${products[i].name} = ${money(subtotal)}`);
+    }
+  });
+  if(!items.length){alert("Agrega al menos un producto.");return;}
+
   const name=document.getElementById("name").value.trim();
   const address=document.getElementById("address").value.trim();
   const note=document.getElementById("note").value.trim();
-  let items=[],total=0;
 
-  cart.forEach((q,i)=>{
-    if(q){
-      const sub=q*products[i][1];
-      total+=sub;
-      items.push(`• ${q} x ${products[i][0]} = ${money(sub)}`);
-    }
-  });
+  const message=`🔥 *NUEVO PEDIDO SALCHIEXPRESS*
 
-  if(!items.length){
-    alert("Agrega al menos un producto.");
-    return;
-  }
-
-  const msg =
-`🔥 *NUEVO PEDIDO*
-
-${items.join("
-")}
+${items.join("\n")}
 
 💰 *TOTAL: ${money(total)}*
 
@@ -155,9 +169,11 @@ ${items.join("
 📍 *Entrega:* ${address||"No indicada"}
 📝 *Nota:* ${note||"Ninguna"}`;
 
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,"_blank");
+  window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(message)}`,"_blank");
 }
+
 render();
+
 </script>
 </body>
 </html>
